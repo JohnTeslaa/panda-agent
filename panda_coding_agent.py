@@ -46,6 +46,10 @@ def finish_agent() -> str:
     """Finish the agent execution."""
     return "finish"
 
+def grep() -> str:
+    """find some code definition in current repo"""
+    return ""
+
 # model = ChatDeepSeek(model="deepseek-chat", api_key="sk-xxxx", )
 # model = ChatOllama(base_url="http://127.0.0.1:11434/", model="deepseek-r1:14b", temperature=0.7, keep_alive="5m", )
 # model = init_chat_model(
@@ -61,7 +65,7 @@ def finish_agent() -> str:
 #     )
 
 
-def exeAgent():
+def exeWeatherAgent():
     model = ChatOpenAI(
         # model="doubao-seed-1-6-251015",
         model="",
@@ -123,5 +127,72 @@ def exeAgent():
             else:
                 print("放弃")
 
+
+
+def exeCodingAgent():
+    model = ChatOpenAI(
+        # model="doubao-seed-1-6-251015",
+        model="",
+        base_url="https://ark.cn-beijing.volces.com/api/v3",
+        api_key="",  # 替换为你自己的 Key
+        temperature=0,
+        max_tokens=8 * 1024,
+        extra_body={
+            "thinking": {
+                "type": "disabled"  # 如果需要推理，这里可以设置为 "auto"
+            }
+        }
+    )
+
+    agent = create_agent(
+        model=model,
+        tools=[get_weather, get_city, read_file, write_file, finish_agent],
+        middleware=[HumanInTheLoopMiddleware(
+            interrupt_on={
+                # "write_file": True,  # All decisions (approve, edit, reject) allowed
+                "execute_sql": {"allowed_decisions": ["approve", "reject"]},  # No editing allowed
+                # "read_data": True, # 读文件需要中断
+                # "read_file": True, # 读文件需要中断
+            },
+            # Prefix for interrupt messages - combined with tool name and args to form the full message
+            # e.g., "Tool execution pending approval: execute_sql with query='DELETE FROM...'"
+            # Individual tools can override this by specifying a "description" in their interrupt config
+            description_prefix="Tool execution pending approval",
+        )],
+        # checkpointer=InMemorySaver(),
+        system_prompt="你是一个资深的工程师，你的目的是根据用户输入的需求，完成代码编写。你应该根据以下步骤完成："
+                      "1、先根据当前目录下代码仓库信息，2、做任务规划，生成ToDo，3、对每一个ToDo，编写相关的代码 4、执行测试。 "
+                      "你可以使用的工具如下：read_file、write_file、grep",
+    )
+
+    ## 场景1：只输出最终的结果
+    # result = agent.invoke(
+    #     {'messages': '开始'},
+    #     stream_mode="values"
+    # )
+    # result = result["messages"][-1].content
+    # print(f"result: {result}")
+
+    ## 场景2：走流式输出
+    question = '写一个mcp工具，可以做search网页中的最新内容'
+    for step in agent.stream(
+            {'messages': question},
+            stream_mode="values"
+    ):
+        ## 存在key为"messages"的元素，则打印
+        if "messages" in step:
+            step["messages"][-1].pretty_print()
+        elif "__interrupt__" in step:
+            print(f'step["__interrupt__"]: {step["__interrupt__"]}')
+            # 人工确认是否继续
+            user_input = input("是否继续执行该工具？输入 yes 继续，其他键放弃：").strip().lower()
+            if user_input == "yes":
+                # 用户同意，继续后续流程
+                print("用户确认继续，工具将被调用…")
+                continue
+            else:
+                print("放弃")
+
 if __name__ == '__main__':
-    exeAgent()
+    # exeWeatherAgent()
+    exeCodingAgent()
