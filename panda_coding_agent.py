@@ -50,6 +50,50 @@ def grep() -> str:
     """find some code definition in current repo"""
     return ""
 
+def sequential_thinking() -> str:
+    """A detailed tool for dynamic and reflective problem-solving through thoughts.
+This tool helps analyze problems through a flexible thinking process that can adapt and evolve.
+Each thought can build on, question, or revise previous insights as understanding deepens.
+
+When to use this tool:
+- Breaking down complex problems into steps
+- Planning and design with room for revision
+- Analysis that might need course correction
+- Problems where the full scope might not be clear initially
+- Problems that require a multi-step solution
+- Tasks that need to maintain context over multiple steps
+- Situations where irrelevant information needs to be filtered out
+
+Key features:
+- You can adjust total_thoughts up or down as you progress
+- You can question or revise previous thoughts
+- You can add more thoughts even after reaching what seemed like the end
+- You can express uncertainty and explore alternative approaches
+- Not every thought needs to build linearly - you can branch or backtrack
+- Generates a solution hypothesis
+- Verifies the hypothesis based on the Chain of Thought steps
+- Repeats the process until satisfied
+- Provides a correct answer
+
+Parameters explained:
+- thought: Your current thinking step, which can include:
+  * Regular analytical steps
+  * Revisions of previous thoughts
+  * Questions about previous decisions
+  * Realizations about needing more analysis
+  * Changes in approach
+  * Hypothesis generation
+  * Hypothesis verification
+- next_thought_needed: True if you need more thinking, even if at what seemed like the end
+- thought_number: Current number in sequence (can go beyond initial total if needed)
+- total_thoughts: Current estimate of thoughts needed (can be adjusted up/down)
+- is_revision: A boolean indicating if this thought revises previous thinking
+- revises_thought: If is_revision is true, which thought number is being reconsidered
+- branch_from_thought: If branching, which thought number is the branching point
+- branch_id: Identifier for the current branch (if any)
+- needs_more_thoughts: If reaching end but realizing more thoughts needed"""
+    return "current thinking result is: %s"
+
 # model = ChatDeepSeek(model="deepseek-chat", api_key="sk-xxxx", )
 # model = ChatOllama(base_url="http://127.0.0.1:11434/", model="deepseek-r1:14b", temperature=0.7, keep_alive="5m", )
 # model = init_chat_model(
@@ -82,7 +126,7 @@ def exeWeatherAgent():
 
     agent = create_agent(
         model=model,
-        tools=[get_weather, get_city, read_file, write_file, finish_agent],
+        tools=[get_weather, get_city, read_file, write_file, finish_agent, sequential_thinking],
         middleware=[HumanInTheLoopMiddleware(
             interrupt_on={
                 # "write_file": True,  # All decisions (approve, edit, reject) allowed
@@ -146,7 +190,7 @@ def exeCodingAgent():
 
     agent = create_agent(
         model=model,
-        tools=[get_weather, get_city, read_file, write_file, finish_agent],
+        tools=[get_weather, get_city, read_file, write_file, finish_agent, sequential_thinking],
         middleware=[HumanInTheLoopMiddleware(
             interrupt_on={
                 # "write_file": True,  # All decisions (approve, edit, reject) allowed
