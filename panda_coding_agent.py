@@ -3,10 +3,15 @@
 from langchain.agents import create_agent
 from langchain.agents.middleware import HumanInTheLoopMiddleware
 from langchain.chat_models import init_chat_model
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, FunctionMessage
 # from langchain_deepseek import ChatDeepSeek
 # from langchain_ollama.chat_models import ChatOllama
 from langchain_openai import ChatOpenAI
 from langchain.agents.middleware import HumanInTheLoopMiddleware
+
+from prompt.coding_v1_prompt import plan_act_prompt
+
+
 # from langgraph.checkpoint.memory import InMemorySaver
 
 
@@ -29,6 +34,7 @@ def get_city(city: str) -> str:
 def read_file(file_path: str) -> str:
     """Read the content of a file."""
     try:
+        print("will read file")
         with open(file_path, 'r') as file:
             return file.read()
     except FileNotFoundError:
@@ -40,6 +46,7 @@ def read_file(file_path: str) -> str:
 def write_file(file_path: str, content: str) -> str:
     """Write content to a file."""
     try:
+        print("will write file")
         with open(file_path, 'w') as file:
             file.write(content)
         return f"Successfully wrote to {file_path}"
@@ -211,9 +218,7 @@ def exeCodingAgent():
             description_prefix="Tool execution pending approval",
         )],
         # checkpointer=InMemorySaver(),
-        system_prompt="你是一个资深的工程师，你的目的是根据用户输入的需求，完成代码编写。你应该根据以下步骤完成："
-                      "1、先根据当前目录下代码仓库信息，2、做任务规划，生成ToDo，3、对每一个ToDo，编写相关的代码 4、执行测试。 "
-                      "你可以使用的工具如下：read_file、write_file、grep",
+        system_prompt=plan_act_prompt,
     )
 
     ## 场景1：只输出最终的结果
@@ -230,6 +235,15 @@ def exeCodingAgent():
             {'messages': question},
             stream_mode="values"
     ):
+        message = step["messages"][-1]
+        if isinstance(message, HumanMessage):
+            print(f'human message: {message}')
+        if isinstance(message, AIMessage):
+            print(f'ai message: {message}')
+        if isinstance(message, ToolMessage):
+            print(f'tool message: {message}')
+        if isinstance(message, FunctionMessage):
+            print(f'function message: {message}')
         ## 存在key为"messages"的元素，则打印
         if "messages" in step:
             step["messages"][-1].pretty_print()
