@@ -1,6 +1,7 @@
 # pip install -qU "langchain[anthropic]" to call the model
 
 from langchain.agents import create_agent
+from langchain.agents.middleware import HumanInTheLoopMiddleware
 from langchain.chat_models import init_chat_model
 # from langchain_deepseek import ChatDeepSeek
 # from langchain_ollama.chat_models import ChatOllama
@@ -19,9 +20,11 @@ def get_weather(city: str) -> str:
         return f"多云： {city}!"
     return f"未知城市： {city}!"
 
+
 def get_city(city: str) -> str:
     """Get weather for a given city."""
     return f"当前是杭州!"
+
 
 def read_file(file_path: str) -> str:
     """Read the content of a file."""
@@ -33,6 +36,7 @@ def read_file(file_path: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
+
 def write_file(file_path: str, content: str) -> str:
     """Write content to a file."""
     try:
@@ -42,13 +46,16 @@ def write_file(file_path: str, content: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
+
 def finish_agent() -> str:
     """Finish the agent execution."""
     return "finish"
 
+
 def grep() -> str:
     """find some code definition in current repo"""
     return ""
+
 
 def sequential_thinking() -> str:
     """A detailed tool for dynamic and reflective problem-solving through thoughts.
@@ -93,6 +100,7 @@ Parameters explained:
 - branch_id: Identifier for the current branch (if any)
 - needs_more_thoughts: If reaching end but realizing more thoughts needed"""
     return "current thinking result is: %s"
+
 
 # model = ChatDeepSeek(model="deepseek-chat", api_key="sk-xxxx", )
 # model = ChatOllama(base_url="http://127.0.0.1:11434/", model="deepseek-r1:14b", temperature=0.7, keep_alive="5m", )
@@ -172,7 +180,6 @@ def exeWeatherAgent():
                 print("放弃")
 
 
-
 def exeCodingAgent():
     model = ChatOpenAI(
         # model="doubao-seed-1-6-251015",
@@ -236,6 +243,7 @@ def exeCodingAgent():
                 continue
             else:
                 print("放弃")
+
 
 if __name__ == '__main__':
     # exeWeatherAgent()
