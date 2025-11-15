@@ -10,6 +10,7 @@ from langchain_openai import ChatOpenAI
 from langchain.agents.middleware import HumanInTheLoopMiddleware
 
 from prompt.coding_v1_prompt import plan_act_prompt
+from tools.grep.custom_grep_tool import custom_grep
 
 
 # from langgraph.checkpoint.memory import InMemorySaver
@@ -59,8 +60,33 @@ def finish_agent() -> str:
     return "finish"
 
 
-def grep() -> str:
-    """find some code definition in current repo"""
+def local_grep() -> str:
+    """A powerful search tool built on ripgrep for searching file contents with regex patterns.
+
+    ALWAYS use this tool for search tasks. NEVER invoke `grep` or `rg` as a Bash command.
+    Supports full regex syntax, file filtering, and various output modes.
+
+    Args:
+        pattern: The regular expression pattern to search for in file contents.
+                Uses ripgrep syntax - literal braces need escaping (e.g., `interface\\{\\}` for `interface{}`).
+        path: File or directory to search in. Defaults to current working directory if not specified.
+        glob: Glob pattern to filter files (e.g., "*.js", "*.{ts,tsx}").
+        output_mode: Output mode - "content" shows matching lines with optional context,
+                    "files_with_matches" shows only file paths (default),
+                    "count" shows match counts per file.
+        B: Number of lines to show before each match. Only works with output_mode="content".
+        A: Number of lines to show after each match. Only works with output_mode="content".
+        C: Number of lines to show before and after each match. Only works with output_mode="content".
+        n: Show line numbers in output. Only works with output_mode="content".
+        i: Enable case insensitive search.
+        type: File type to search (e.g., "js", "py", "rust", "go", "java").
+             More efficient than glob for standard file types.
+        head_limit: Limit output to first N lines/entries. Works across all output modes.
+        multiline: Enable multiline mode where patterns can span lines and . matches newlines.
+                  Default is False (single-line matching only).
+
+    Returns:
+        Search results as a string, formatted according to the output_mode."""
     return ""
 
 
@@ -204,7 +230,7 @@ def exeCodingAgent():
 
     agent = create_agent(
         model=model,
-        tools=[get_weather, get_city, read_file, write_file, finish_agent, sequential_thinking],
+        tools=[get_weather, get_city, read_file, write_file, finish_agent, sequential_thinking, custom_grep],
         middleware=[HumanInTheLoopMiddleware(
             interrupt_on={
                 # "write_file": True,  # All decisions (approve, edit, reject) allowed
@@ -230,7 +256,7 @@ def exeCodingAgent():
     # print(f"result: {result}")
 
     ## 场景2：走流式输出
-    question = '写一个mcp工具，可以做search网页中的最新内容'
+    question = '根据custom_grep的注释，实现自定义的custom_grep工具'
     for step in agent.stream(
             {'messages': question},
             stream_mode="values"
